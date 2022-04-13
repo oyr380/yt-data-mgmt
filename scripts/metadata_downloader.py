@@ -19,6 +19,11 @@ import time
 
 import pandas as pd
 
+#  __  __         _ _  __        _   _    _
+# |  \/  |___  __| (_)/ _|_  _  | |_| |_ (_)___
+# | |\/| / _ \/ _` | |  _| || | |  _| ' \| (_-<
+# |_|  |_\___/\__,_|_|_|  \_, |  \__|_||_|_/__/
+#                         |__/
 # ===============================================================
 # Modify this for your setup
 # Used as an argument alongside yt-dlp, yt-dlp can handle globbing, relative paths, etc
@@ -26,8 +31,7 @@ import pandas as pd
 config_path = "~/school/cs4243/project/temp/project.conf"
 
 # Must be an absolute path with the current setup
-#archive_path = ''
-archive_path = "/home/kerensky/Documents/school/UTSA/cs4243/project/temp/total_archive.txt"
+archive_path = ''
 
 # ===============================================================
 
