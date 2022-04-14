@@ -157,6 +157,9 @@ for channel_url in channels:
         # TODO
         # add else to throw the video non-working ID into a log file for reference later on
         # Don't expect this to be very necessary
+
+
+
 # FIXME - Can add harmless duplicates to file
 # Solution may be best in another script to replicate "sort -u" capability
 # Add completed channel to completed.txt
@@ -178,7 +181,7 @@ with open('batch_vids.txt', 'r+') as fp:
     for channel in completed_channels:
         #if channel[:-1] in lines:
         # Was accounting for the trailing slash or not but 2nd if should be redundant now
-        if channel in lines or (channel[:-2] + '\n') in lines:
+        if channel in lines:
             print("COMPLETED: " + channel)
             lines.remove(channel)
         if (channel[:-2] + '\n') in lines:
