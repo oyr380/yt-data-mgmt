@@ -57,6 +57,8 @@ ytdlp_args = ["yt-dlp",
 channels = []
 
 # Create dict where key is video ID and value is key number
+#TODO use os to create path for archive_path
+#
 archive_dict = pd.read_csv(archive_path, delimiter=' ', header=None).to_dict()[1]
 archive_dict = dict([(value, key) for key, value in archive_dict.items()])
 
@@ -96,8 +98,11 @@ for channel_url in channels:
     output = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # Print and parse the output line by line as yt-dlp runs
+    # FIXME - Hangs here on T-series channel consistently, error indicates its loop line itself (immediately below)
+    print(iter(output.stdout.readline, ""))
     for stdout_line in iter(output.stdout.readline, ""):
         #print(len(stdout_line))
+        print("text")
         if len(stdout_line) > 0:
             print(stdout_line[:-1])
             match = re.search(b"^\[youtube\] [A-Z,a-z,0-9,_,-]{11}", stdout_line)
@@ -113,6 +118,8 @@ for channel_url in channels:
             break
         #print(end='')
 
+
+    output.stdout.flush()
     # If video ID not in archive file then add to list for downloads
     for video in video_ids:
         if video not in archive_dict:
