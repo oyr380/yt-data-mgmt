@@ -8,6 +8,8 @@ import JSONHandler
 JSON_DEBUG = True
 PRINT_OUTPUT = True
 
+# Default directory name to store cleaned jsons
+save_dir = 'cleaned_jsons'
 
 #TODO check children videos (eg cocomelon) and music videos (eg eminem)
 root_keys = [
@@ -84,6 +86,9 @@ comment_keys = [
 optional_keys = [
    'like_count'
 ]
+
+
+illegal_filename_characters = ['/', '\\']
 
 # class JSONParser:
     # def __init__(self):
@@ -169,28 +174,69 @@ def get_video_ids(json_files):
     '''
 
     ids = json_files.dump_select_key('id')
-    print(len(ids))
     for id in ids:
         if len(id) != 11:
             ids.remove(id)
 
-    print(len(ids))
     return ids
+
+
+#TODO - Add return boolean return to allow simple error handling
+def write_json(json_dict, write_path):
+    '''
+    Saves json_dict (dictionary representation of parsed video json)
+    write_path is the directory to save to
+        Normally this should just be save_path from main()
+    '''
+    #Example my/path/Pewdiepie/videoname/
+    write_dir = os.path.join(write_path, json_dict['channel'], '')
+    #Example videoname_o23_sz5412p.json
+    filename = json_dict['title'] + '_' + json_dict['id'] + ".json"
+
+    for c in illegal_filename_characters:
+        if c in filename:
+            filename = filename.replace(c, '_')
+
+    #Make channel directory if it doesn't exist
+    if not os.path.exists(write_dir):
+        os.mkdir(write_dir)
+
+    # Will overwrite existing file
+    with open(os.path.join(write_dir, filename), 'w') as fp:
+        json.dump(json_dict, fp)
+
 
 
 
 if __name__ == '__main__':
 
-    # Check if path was provided as first argument
-    # Subsequent arguments ignored
+    # Check if path to jsons was provided as first argument
+    #
     if len(sys.argv) < 2:
         path = os.getcwd()
-    else:
+        save_path = os.path.join(path, save_dir)
+    elif len(sys.argv) < 3:
         if os.path.exists(sys.argv[1]):
             path = sys.argv[1]
+            save_path = os.path.join(path, save_dir)
         else:
             print("Path does not exist: {}".format(sys.argv[1]))
             sys.exit(1)
+    elif len(sys.argv) < 4:
+        if os.path.exists(sys.argv[1]) and os.path.exists(sys.argv[2]):
+            path = sys.argv[1]
+            save_path = sys.argv[2]
+        elif not os.path.exists(sys.argv[1]):
+            print("Path does not exist: {}".format(sys.argv[1]))
+            sys.exit(1)
+        elif not os.path.exists(sys.argv[2]):
+            print("Path does not exist: {}".format(sys.argv[2]))
+            sys.exit(1)
+
+
+    # Creates the save directory if necessary
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
 
     JSONHandler.PRINT_OUTPUT = False
     JSONHandler.JSON_DEBUG = False
@@ -200,30 +246,28 @@ if __name__ == '__main__':
 
     json_files.get_files()
 
-    #JSONHandler.PRINT_OUTPUT = True
     video_ids = get_video_ids(json_files)
-    sys.exit()
     json_list = []
-    # print(sorted(json_files.files))
     #Go through each file and verify it's a complete json
     for json_file in json_files.files:
 
         #Skip channel-jsons identifiable via parent directory
+        #TODO - Find and refer to filenames instead?
+        #This should work as is but may have unforeseen issues
         if is_channel_json(json_file):
             continue
 
-        #Open same file twice to lazily pass one for verification
+        #Open same file twice to lazily pass one for json format verification
         with open(json_file, 'r') as file, open(json_file, 'r') as filecopy:
             # print(check_json_complete(json_file))
             # if Complete json file, parse it
             if check_json_complete(filecopy):
                 data = json.load(file)
-
-                print(json_file)
-                print(len(data))
                 json_dict = parse_json(root_keys, comment_keys, data)
 
-                #TODO - Save json dict to new file
+                print("Saving {}...".format(json_file))
+                #TODO - Save json dict to new file at save_path
+                write_json(json_dict, save_path)
                 #TODO - Record saved video ID in completed parsed_videos.txt file
                 #TODO - incorporate this parsed_videos.txt file into overall function
 
