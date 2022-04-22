@@ -1,0 +1,60 @@
+id
+title
+thumbnail
+description
+upload_date
+uploader
+uploader_id
+uploader_url
+duration
+view_count
+age_limit
+webpage_url
+categories
+tags
+playable_in_embed
+is_live
+was_live
+live_status
+like_count
+channel
+channel_follower_count
+availability
+n_entries
+playlist_count
+playlist_index
+playlist
+playlist_id
+playlist_title
+playlist_uploader
+playlist_uploader_id
+full_title
+display_id
+ext
+filesize_approx
+format_note
+width
+height
+resolution
+fps
+dynamic_range
+vcodec
+vbr
+acodec
+abr
+asr
+comment_count
+epoch
+_type
+comments
+    id
+    text
+    timestamp
+    time_text
+    like_count
+    is_favorited
+    author
+    author_id
+    author_thumbnail
+    author_is_uploader
+    parent
