@@ -60,7 +60,6 @@ class JSONHandler:
 
     def dump_select_key(self, key):
         ret = []
-        #key = 'id'
         for each in self.files:
             fp = open(each)
             data = json.load(fp)

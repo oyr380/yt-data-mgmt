@@ -150,26 +150,58 @@ def parse_json(root_keys, comment_keys, json_dict):
         #     print(e)
         #     print(json_dict['webpage_url'])
         #     sys.exit()
+    return ret_dict
 
-    print(len(ret_dict))
-    
 
-def is_channel_json(json_file):
-    if json_file.split('/')[-2] == 'NA':
+
+def is_channel_json(json_path):
+    if json_path.split('/')[-2] == 'NA':
         return True
     else:
         return False
 
 
+def get_video_ids(json_files):
+    '''
+    Returns a list of youtube video IDs
+    Removes channel IDs (and other invalid IDs) based on length
+    Valid video IDs are 11 characters long
+    '''
+
+    ids = json_files.dump_select_key('id')
+    print(len(ids))
+    for id in ids:
+        if len(id) != 11:
+            ids.remove(id)
+
+    print(len(ids))
+    return ids
+
+
+
 if __name__ == '__main__':
+
+    # Check if path was provided as first argument
+    # Subsequent arguments ignored
+    if len(sys.argv) < 2:
+        path = os.getcwd()
+    else:
+        if os.path.exists(sys.argv[1]):
+            path = sys.argv[1]
+        else:
+            print("Path does not exist: {}".format(sys.argv[1]))
+            sys.exit(1)
+
     JSONHandler.PRINT_OUTPUT = False
     JSONHandler.JSON_DEBUG = False
     json_files = JSONHandler.JSONHandler()
-    json_files.get_files()
-    #json_files.dump_keys()
 
-    JSONHandler.PRINT_OUTPUT = True
-    print(json_files.dump_select_key('id'))
+    json_files.path = path
+
+    json_files.get_files()
+
+    #JSONHandler.PRINT_OUTPUT = True
+    video_ids = get_video_ids(json_files)
     sys.exit()
     json_list = []
     # print(sorted(json_files.files))
@@ -189,8 +221,14 @@ if __name__ == '__main__':
 
                 print(json_file)
                 print(len(data))
-                parse_json(root_keys, comment_keys, data)
+                json_dict = parse_json(root_keys, comment_keys, data)
+
+                #TODO - Save json dict to new file
+                #TODO - Record saved video ID in completed parsed_videos.txt file
+                #TODO - incorporate this parsed_videos.txt file into overall function
 
             else:
+                #TODO add to broken file for later redownload
+                #NOTE - Perhaps remove from archive directory?
                 #print("Broken")
                 print("")
