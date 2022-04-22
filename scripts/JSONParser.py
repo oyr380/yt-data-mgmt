@@ -86,6 +86,7 @@ def check_json_complete(path):
     try:
         json.loads(path)
         return True
+        # print()
     except ValueError as e:
         print("ERROR: {}".format(e))
         print("Malformed JSON: {}".format(path))
