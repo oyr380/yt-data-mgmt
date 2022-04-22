@@ -58,5 +58,20 @@ class JSONHandler:
             fp.close()
 
 
+    def dump_select_key(self, key):
+        ret = []
+        #key = 'id'
+        for each in self.files:
+            fp = open(each)
+            data = json.load(fp)
+            if key in data:
+                val = data.get(key)
+                ret.append(val)
+                if PRINT_OUTPUT:
+                    print(val)
+            fp.close()
+
+        return ret
+
 if __name__=='__main__':
     JSONHandler().dump_keys()
