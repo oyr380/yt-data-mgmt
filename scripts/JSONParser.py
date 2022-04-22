@@ -88,6 +88,7 @@ optional_keys = [
 ]
 
 
+# List of illegal characters in filenames. Can be preference as well
 illegal_filename_characters = ['/', '\\']
 
 # class JSONParser:
@@ -135,8 +136,8 @@ def parse_json(root_keys, comment_keys, json_dict):
 
         # If an optional key isn't present in the json, skip to the next field
         if key not in json_dict and key in optional_keys:
-            print(key)
-            sys.exit()
+            #print(key)
+            #sys.exit()
             continue
 
         if key in json_dict:
@@ -275,4 +276,4 @@ if __name__ == '__main__':
                 #TODO add to broken file for later redownload
                 #NOTE - Perhaps remove from archive directory?
                 #print("Broken")
-                print("")
+                print()
