@@ -22,6 +22,9 @@ import time
 
 import pandas as pd
 
+
+import JSONHandler
+
 #  __  __         _ _  __        _   _    _
 # |  \/  |___  __| (_)/ _|_  _  | |_| |_ (_)___
 # | |\/| / _ \/ _` | |  _| || | |  _| ' \| (_-<
@@ -115,6 +118,7 @@ def ytdlp_get_ids(channel_url):
                               stderr=subprocess.PIPE)
 
     # Print and parse the output line by line as yt-dlp runs
+    # FIXME - Hangs here on T-series channel consistently, error indicates its loop line itself (immediately below)
     print(iter(output.stdout.readline, ""))
     for stdout_line in iter(output.stdout.readline, ""):
         #print(len(stdout_line))
@@ -153,23 +157,79 @@ def write_file_list(path, write_list, filename=None):
         0 - success
         nonzero - error
     '''
-    # If path doesn't exist and path isn't to a file
-    # TODO - Create path default instead
-    if not os.path.exists(path) and not os.path.isfile(path):
-        #os.makedirs(path)
-        return 1
     #Check if path is a directory and filename was set
     if os.path.isdir(path) and filename is not None:
         with open(os.path.join(path, filename), 'w') as wf:
-            wf.writelines(write_list)
+            wf.write('\n'.join(str(line) for line in write_list))
+            wf.write('\n')
 
     #Path is to file
     elif os.path.isfile(path):
         with open(os.path.join(path), 'w') as wf:
-            wf.writelines(write_list)
+            wf.write('\n'.join(str(line) for line in write_list))
+            wf.write('\n')
+
+    else:
+        return 1
+
+    return 0
 
 
+def append_file_list(path, write_list, filename=None):
+    '''
+    Append list to file
+    2 required arguments
+    Path - path to directory or file
+    write_data - data to be written
 
+    Optional
+    filename - filename for when path is a directory
+
+    returns integer value
+        0 - success
+        nonzero - error
+    '''
+    # If path doesn't exist and path isn't to a file
+    # TODO - Create path default instead
+    # if not os.path.exists(path) and not os.path.isfile(path):
+    #     #os.makedirs(path)
+    #     return 1
+
+    #Check if path is a directory and filename was set
+    if os.path.isdir(path) and filename is not None:
+        with open(os.path.join(path, filename), 'a') as wf:
+            wf.write('\n'.join(str(line) for line in write_list))
+            wf.write('\n')
+
+    #Path is to file or path isn't a file but filename is None, implying path should be a filepath
+    elif os.path.isfile(path) or not os.path.isfile(path) and filename is None:
+        with open(os.path.join(path), 'a') as wf:
+            wf.write('\n'.join(str(line) for line in write_list))
+            wf.write('\n')
+
+    else:
+        return 1
+
+    return 0
+
+
+def get_ids_from_jsons():
+    '''
+    Parse all .info.json files for their IDs
+    Removes non-video IDs
+
+    returns list of video IDs in ytdlp archive format (with "youtube" prefix)
+        example: youtube hd-y7uRHBTg
+    '''
+    id_list = JSONHandler.JSONHandler().dump_select_key('id')
+    for video in id_list:
+        if len(video) != 11:
+            id_list.remove(video)
+
+    for video in id_list:
+        id_list[id_list.index(video)] = "youtube " + video
+
+    return id_list
 
 if __name__ == '__main__':
     # used to get video IDs
@@ -191,6 +251,10 @@ if __name__ == '__main__':
     # List of channels from batch file for yt-dlp (no longer to be used in the yt-dlp options as this script should manage it)
     channels = []
 
+    # Get a list of video IDs in existing json files
+    id_list = get_ids_from_jsons()
+    append_file_list(archive_path, id_list)
+
     # Create dict where key is video ID and value is key number
     archive_dict = pd.read_csv(archive_path, delimiter=' ', header=None).to_dict()[1]
     archive_dict = dict([(value, key) for key, value in archive_dict.items()])
@@ -203,10 +267,10 @@ if __name__ == '__main__':
         for line in lines:
             #If the URL doesn't end in a / add one
             #Assumes specific format currently adhered to in current list
-            if line[-2] != "/":
-                line = line.rstrip('\n') + '/'
+            # if line[-2] != "/":
+            #     line = line.rstrip('\n') + '/'
 
-            channels.append(line.rstrip("\n"))
+            channels.append(line)
 
 
 
@@ -221,41 +285,8 @@ if __name__ == '__main__':
         video_ids = []
 
         channel_name = ytdlp_get_channel_name(channel_url)
-        print(channel_name)
         video_ids = ytdlp_get_ids(channel_url)
-        # # Get a list of the channel's video IDs for comparison later
-        # args = ytdlp_simulate.split(' ')
-        # args.append(channel_url)
-        # # print(args)
 
-        # # Run yt-dlp
-        # print(args)
-        # # Assumes everything will work
-        # output = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        # # Print and parse the output line by line as yt-dlp runs
-        # # FIXME - Hangs here on T-series channel consistently, error indicates its loop line itself (immediately below)
-        # print(iter(output.stdout.readline, ""))
-        # for stdout_line in iter(output.stdout.readline, ""):
-        #     #print(len(stdout_line))
-        #     print("text")
-        #     if len(stdout_line) > 0:
-        #         print(stdout_line[:-1])
-        #         match = re.search(b"^\[youtube\] [A-Z,a-z,0-9,_,-]{11}", stdout_line)
-
-        #         if match:
-        #             # split on space and add ID to list
-        #             video_id = match.group().decode().split(' ')[1]
-        #             if video_id not in video_ids:
-        #                 video_ids.append(video_id)
-        #             #print(match.group().decode())
-
-        #     else:
-        #         break
-            #print(end='')
-
-
-        #output.stdout.flush()
         # If video ID not in archive file then add to list for downloads
         for video in video_ids:
             if video not in archive_dict:
@@ -263,7 +294,8 @@ if __name__ == '__main__':
 
         #If there are no new_downloads (videos) then channel marked as complete
         if len(new_downloads) == 0:
-            completed_channels.append(channel_url + '\n')
+            #completed_channels.append(channel_url + '\n')
+            completed_channels.append(channel_url)
 
         # Go through each new video ID and download the data
         # Updates the archive file after successful download
@@ -277,21 +309,23 @@ if __name__ == '__main__':
             print(args)
 
             # Run yt-dlp to download video metadata
-            output = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            # Print and parse the output line by line as yt-dlp runs
-            for stdout_line in iter(output.stdout.readline, ""):
-                #print(len(stdout_line))
-                if len(stdout_line) > 0:
-                    print(stdout_line[:-1])
-                else:
-                    break
-            # Wait for yt-dlp to finish running to get return code
-            while output.poll() is None:
-                time.sleep(0.5)
+            # FIXME temp
+            # output = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # # Print and parse the output line by line as yt-dlp runs
+            # for stdout_line in iter(output.stdout.readline, ""):
+            #     #print(len(stdout_line))
+            #     if len(stdout_line) > 0:
+            #         print(stdout_line[:-1])
+            #     else:
+            #         break
+            # # Wait for yt-dlp to finish running to get return code
+            # while output.poll() is None:
+            #     time.sleep(0.5)
 
             # If return code is 0 (success) then append video ID to archive file
-            if output.returncode == 0:
-                with open(archive_path, 'a') as fp:
+            # if output.returncode == 0:
+            if True is True:
+                with open(os.path.join(archive_path), 'a') as fp:
                     newline = "youtube " + video
                     #fp.write('\n')
                     fp.write(newline)
@@ -306,8 +340,9 @@ if __name__ == '__main__':
     # FIXME - Can add harmless duplicates to file
     # Solution may be best in another script to replicate "sort -u" capability
     # Add completed channel to completed.txt
-    with open('completed.txt', 'a+') as fp:
-        fp.writelines(completed_channels)
+    # with open('completed.txt', 'a+') as fp:
+    #     fp.writelines(completed_channels)
+    append_file_list(os.getcwd(), completed_channels, 'completed.txt')
 
     # Remove completed channel from batch_vids.txt
     with open('batch_vids.txt', 'r+') as fp:
@@ -321,6 +356,7 @@ if __name__ == '__main__':
             if line[-2] != "/":
                 line = line.rstrip('\n') + '/'
             lines[index] = line
+            index += 1
         for channel in completed_channels:
             #if channel[:-1] in lines:
             # Was accounting for the trailing slash or not but 2nd if should be redundant now
@@ -337,7 +373,7 @@ if __name__ == '__main__':
 
         # If there are no more urls in file, write empty file
         if len(lines) == 0:
-            with open('batch_vids.txt', 'w') as _fp:
+            with open('batch_vids.txt', 'w') as fp:
                 pass
         # Write remaining lines to file
         else:
