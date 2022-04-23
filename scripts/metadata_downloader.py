@@ -182,9 +182,16 @@ def ytdlp_download_video(video, quiet=False):
     # Run yt-dlp to download video metadata
     output = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+    start_time = time.time()
+
+    # 10 hour max limit for a single video to finish
+    max_time = 3600 * 10
+
     # Print and parse the output line by line as yt-dlp runs
     if quiet is False:
         for stdout_line in iter(output.stdout.readline, ""):
+            if time.time - start_time > max_time:
+                return 1
             #print(len(stdout_line))
             if len(stdout_line) > 0 and quiet is False:
                 print(stdout_line[:-1])
@@ -195,6 +202,8 @@ def ytdlp_download_video(video, quiet=False):
 
     # Wait for yt-dlp to finish running to get return code
     while output.poll() is None:
+        if time.time - start_time > max_time:
+            return 1
         # Print loading icon so you know it's working
         # If this stops spinning, something broke
         #sys.stdout.write(next(spinner))
