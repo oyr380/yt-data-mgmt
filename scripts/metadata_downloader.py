@@ -44,6 +44,54 @@ batch_file = os.path.normpath("batch_vids.txt")
 # ===============================================================
 
 
+
+def ytdlp_get_channel_name(channel_url, seconds=5):
+    channel_name = ''
+
+    args = ytdlp_simulate.split(' ')
+    args.append(channel_url)
+    # print(args)
+
+    # Run yt-dlp
+    print(args)
+    # Assumes everything will work
+    output = subprocess.Popen(args,
+                              stdin=subprocess.PIPE,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE,
+                              )
+
+    start_time = time.time()
+    # Print and parse the output line by line as yt-dlp runs
+    print(iter(output.stdout.readline, ""))
+    for stdout_line in iter(output.stdout.readline, ""):
+        #print(len(stdout_line))
+        if len(stdout_line) > 0:
+            print(stdout_line[:-1])
+            channel_match = re.search(b"^\[download\] Downloading playlist:.*", stdout_line)
+
+            #Last line hit, parse out channel name
+            if channel_match:
+                channel_name = channel_match.group().decode().split(' ')[3:]
+                channel_name = channel_name[:-2]
+                channel_name = ' '.join(channel_name)
+                break
+
+        else:
+            break
+
+        #X seconds have passed
+        if time.time() - start_time > seconds:
+            #Kill the process
+            output.kill()
+            break
+
+
+    output.stdout.flush()
+    return channel_name
+
+
+
 def ytdlp_get_ids(channel_url):
     '''
     Run yt-dlp --simulate and parse output of command for video IDs
@@ -61,14 +109,15 @@ def ytdlp_get_ids(channel_url):
     # Run yt-dlp
     print(args)
     # Assumes everything will work
-    output = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output = subprocess.Popen(args,
+                              stdin=subprocess.PIPE,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
 
     # Print and parse the output line by line as yt-dlp runs
-    # FIXME - Hangs here on T-series channel consistently, error indicates its loop line itself (immediately below)
     print(iter(output.stdout.readline, ""))
     for stdout_line in iter(output.stdout.readline, ""):
         #print(len(stdout_line))
-        print("text")
         if len(stdout_line) > 0:
             print(stdout_line[:-1])
             match = re.search(b"^\[youtube\] [A-Z,a-z,0-9,_,-]{11}", stdout_line)
@@ -81,18 +130,12 @@ def ytdlp_get_ids(channel_url):
                     video_ids.append(video_id)
                 #print(match.group().decode())
 
-            #Last line hit, parse out channel name
-            if channel_match:
-                channel_name = channel_match.group().decode().split(' ')[4:]
-                channel_name = channel_name[:-2]
-                channel_name = ' '.join(channel_name)
-
         else:
             break
         #print(end='')
 
     output.stdout.flush()
-    return video_ids, channel_name
+    return video_ids
 
 
 
@@ -177,10 +220,9 @@ if __name__ == '__main__':
     for channel_url in channels:
         video_ids = []
 
-        video_ids, channel_name = ytdlp_get_ids(channel_url)
-        for line in video_ids:
-            print(line)
+        channel_name = ytdlp_get_channel_name(channel_url)
         print(channel_name)
+        video_ids = ytdlp_get_ids(channel_url)
         # # Get a list of the channel's video IDs for comparison later
         # args = ytdlp_simulate.split(' ')
         # args.append(channel_url)
