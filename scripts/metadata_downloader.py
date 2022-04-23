@@ -163,7 +163,7 @@ def ytdlp_download_videos(videos, progress=False, quiet=False):
 
     for video in videos:
         if progress is True:
-            print("Video {}/{}".format(num_downloads + 1, len(videos)))
+            print("Video {}/{}  - id: {}".format(num_downloads + 1, len(videos), video))
         # If video is successfully downloaded, count it
         if ytdlp_download_video(video, quiet) == 0:
             num_downloads += 1
