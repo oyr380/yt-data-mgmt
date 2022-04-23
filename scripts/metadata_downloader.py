@@ -12,6 +12,9 @@
 #Run yt-dlp commands
 import subprocess
 
+import os
+import sys
+
 #regex
 import re
 
@@ -28,11 +31,15 @@ import pandas as pd
 # Modify this for your setup
 # Used as an argument alongside yt-dlp, yt-dlp can handle globbing, relative paths, etc
 #config_path = ''
-config_path = "~/school/cs4243/project/temp/project.conf"
+config_path = os.path.normpath("~/school/cs4243/project/temp/project.conf")
 
-# Must be an absolute path with the current setup
-archive_path = ''
-archive_path = "archive.txt"
+# Path to archive file that contains already-downloaded video IDs
+#archive_path = ''
+archive_path = os.path.normpath("archive.txt")
+
+
+# Batch file containing channel URLs
+batch_file = os.path.normpath("batch_vids.txt")
 
 # ===============================================================
 
@@ -65,7 +72,7 @@ archive_dict = dict([(value, key) for key, value in archive_dict.items()])
 
 # Assumes there is a file called "batch_vids.txt"
 # Reads all of the channel URLs into the channels[] list
-with open("batch_vids.txt", 'r') as batch_file:
+with open(batch_file, 'r') as batch_file:
     lines = batch_file.readlines()
     for line in lines:
         #If the URL doesn't end in a / add one
