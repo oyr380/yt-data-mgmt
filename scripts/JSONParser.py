@@ -62,6 +62,7 @@ root_keys = [
             'epoch',
             '_type',
             'comments',
+            'duration_string',
 ]
 
 # Nested keys that only apply to comments
