@@ -160,13 +160,18 @@ def ytdlp_get_ids(channel_url):
 def ytdlp_download_videos(videos, progress=False, quiet=False):
 
     num_downloads = 0
+    total_videos = len(videos)
 
     for video in videos:
         if progress is True:
-            print("Video {}/{}  - id: {}".format(num_downloads + 1, len(videos), video))
+            print("Video {}/{}  - id: {}".format(num_downloads + 1, total_videos, video))
         # If video is successfully downloaded, count it
         if ytdlp_download_video(video, quiet) == 0:
             num_downloads += 1
+
+        #Decrement total num of vids left as one failed
+        else:
+            total_videos -= 1
 
     return num_downloads
 
@@ -186,6 +191,7 @@ def ytdlp_download_video(video, quiet=False):
 
     # 10 hour max limit for a single video to finish
     max_time = 3600 * 10
+    #max_time = 10
 
     # Print and parse the output line by line as yt-dlp runs
     if quiet is False:
@@ -202,7 +208,7 @@ def ytdlp_download_video(video, quiet=False):
 
     # Wait for yt-dlp to finish running to get return code
     while output.poll() is None:
-        if time.time - start_time > max_time:
+        if time.time() - start_time > max_time:
             return 1
         # Print loading icon so you know it's working
         # If this stops spinning, something broke
