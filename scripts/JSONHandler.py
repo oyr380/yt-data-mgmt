@@ -42,7 +42,7 @@ class JSONHandler:
         for subdir, dirs, files in os.walk(self.path):
             for filename in files:
                 filepath = subdir + os.sep + filename
-                if filename.lower().endswith('.json'):
+                if filename.lower().endswith('.info.json'):
                     self.files.append(filepath)
 
     def dump_keys(self):
