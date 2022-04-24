@@ -25,6 +25,9 @@ import pandas as pd
 
 import JSONHandler
 
+COMMENT_LIMIT = False
+MAX_COMMENTS = 10000
+
 #  __  __         _ _  __        _   _    _
 # |  \/  |___  __| (_)/ _|_  _  | |_| |_ (_)___
 # | |\/| / _ \/ _` | |  _| || | |  _| ' \| (_-<
@@ -178,9 +181,15 @@ def ytdlp_download_videos(videos, progress=False, quiet=False):
     return num_downloads
 
 def ytdlp_download_video(video, quiet=False):
+
     args = ytdlp_args[:]
     if quiet is True:
         args.append("--quiet")
+
+    # Comment limit is set
+    if COMMENT_LIMIT is True and MAX_COMMENTS > 0:
+        args.append("--extractor-args \"youtube:max_comments={},all,all,all\"".format(MAX_COMMENTS))
+
     args.append("https://www.youtube.com/watch?v=" + video)
 
     spinner = spinning_cursor()
@@ -303,6 +312,49 @@ def append_file_list(path, write_list, filename=None):
 
     return 0
 
+def remove_file_list(path, remove_list, filename=None):
+    '''
+    Remove elements of list from file
+    2 required arguments
+    Path - path to directory or file
+    write_data - data to be written
+
+    Optional
+    filename - filename for when path is a directory
+
+    returns integer value
+        0 - success
+        nonzero - error
+    '''
+
+    lines = []
+    if os.path.isdir(path) and filename is not None:
+        with open(os.path.join(path, filename), 'r+') as fp:
+            lines = fp.readlines()
+            for element in remove_list:
+                if element in lines:
+                    lines.remove(element)
+
+            fp.write('\n'.join(str(line) for line in lines))
+            fp.write('\n')
+
+
+    #Path is to file or path isn't a file but filename is None, implying path should be a filepath
+    elif os.path.isfile(path) or not os.path.isfile(path) and filename is None:
+        with open(os.path.join(path), 'r+') as fp:
+            lines = fp.readlines()
+            for element in remove_list:
+                if element in lines:
+                    lines.remove(element)
+
+            fp.write('\n'.join(str(line) for line in lines))
+            fp.write('\n')
+
+    else:
+        return 1
+
+    return 0
+
 
 def get_ids_from_jsons():
     '''
@@ -394,12 +446,7 @@ if __name__ == '__main__':
                 #Append to completed file
                 append_file_list(os.getcwd(), completed_channels, 'completed.txt')
 
-                lines = fp.readlines()
-                lines.remove(channel_url)
-                fp.writelines(lines)
-
-
-
+                remove_file_list(os.path.join(batch_path), [channel_url])
 
 
     # FIXME - Can add harmless duplicates to file

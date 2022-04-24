@@ -8,10 +8,17 @@ import JSONHandler
 JSON_DEBUG = True
 PRINT_OUTPUT = True
 
-# Default directory name to store cleaned jsons
-save_dir = 'cleaned_jsons'
+COMMENT_LIMIT = True
+MAX_COMMENTS = 10000
 
-#TODO check children videos (eg cocomelon) and music videos (eg eminem)
+
+# Default directory name to store cleaned jsons
+save_dir = os.path.join('cleaned_jsons')
+
+#python3 JSONHandler.py <target_directory> <save_directory>
+# Arguments optional
+# Default target directory is current working directory
+# Default save directory is target_dir/cleaned_jsons
 root_keys = [
             'id',
             'title',
@@ -53,8 +60,8 @@ root_keys = [
             'comment_count',
             'epoch',
             '_type',
-            'comments',
             'duration_string',
+            'comments',
 ]
 
 # Nested keys that only apply to comments
@@ -205,7 +212,6 @@ def write_json(json_dict, write_path):
 if __name__ == '__main__':
 
     # Check if path to jsons was provided as first argument
-    #
     if len(sys.argv) < 2:
         path = os.getcwd()
         save_path = os.path.join(path, save_dir)
