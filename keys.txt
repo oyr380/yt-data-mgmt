@@ -20,14 +20,6 @@ like_count
 channel
 channel_follower_count
 availability
-n_entries
-playlist_count
-playlist_index
-playlist
-playlist_id
-playlist_title
-playlist_uploader
-playlist_uploader_id
 full_title
 display_id
 ext
@@ -46,15 +38,5 @@ asr
 comment_count
 epoch
 _type
+duration_string
 comments
-    id
-    text
-    timestamp
-    time_text
-    like_count
-    is_favorited
-    author
-    author_id
-    author_thumbnail
-    author_is_uploader
-    parent
