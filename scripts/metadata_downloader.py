@@ -328,13 +328,18 @@ def remove_file_list(path, remove_list, filename=None):
     '''
 
     lines = []
+
+    #Open file and remove every instance of element in remove_list[] from the file
+    #Write non-matching lines back to the file
+
     if os.path.isdir(path) and filename is not None:
         with open(os.path.join(path, filename), 'r+') as fp:
             lines = fp.readlines()
             for element in remove_list:
-                if element in lines:
+                while element in lines:
                     lines.remove(element)
 
+            #fp.seek(0,0)
             fp.write('\n'.join(str(line) for line in lines))
             fp.write('\n')
 
@@ -344,9 +349,10 @@ def remove_file_list(path, remove_list, filename=None):
         with open(os.path.join(path), 'r+') as fp:
             lines = fp.readlines()
             for element in remove_list:
-                if element in lines:
+                while element in lines:
                     lines.remove(element)
 
+            #fp.seek(0,0)
             fp.write('\n'.join(str(line) for line in lines))
             fp.write('\n')
 
