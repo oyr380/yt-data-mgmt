@@ -132,7 +132,6 @@ def parse_json(root_keys, comment_keys, json_dict):
             else:
                 print(key)
                 print("Title: {} --- URL: {}".format(json_dict['title'], json_dict['webpage_url']))
-                sys.exit()
 
         # If an optional key isn't present in the json, skip to the next field
         if key not in json_dict and key in optional_keys:
@@ -145,6 +144,8 @@ def parse_json(root_keys, comment_keys, json_dict):
         else:
             print(key)
             print("Title: {} --- URL: {}".format(json_dict['title'], json_dict['webpage_url']))
+            #TODO Add function to write these video IDs to separate file
+            #sys.exit()
             sys.exit()
 
 
@@ -161,11 +162,31 @@ def parse_json(root_keys, comment_keys, json_dict):
 
 
 def is_channel_json(json_path):
-    if json_path.split('/')[-2] == 'NA':
-        return True
-    else:
-        return False
+    '''
+    Determine if json is for a youtube channel or not
+    Uses length of ID to determine this
+    return true or false accordingly
+    '''
+    with open(json_path, 'r') as fp:
+        json_dict = json.load(fp)
+        if len(json_dict['id']) == 24:
+            return True
+        else:
+            return False
 
+
+def is_video_json(json_path):
+    '''
+    Determine if json is for a youtube video or not
+    Uses length of ID to determine this
+    return true or false accordingly
+    '''
+    with open(json_path, 'r') as fp:
+        json_dict = json.load(fp)
+        if len(json_dict['id']) == 11:
+            return True
+        else:
+            return False
 
 def get_video_ids(json_files):
     '''
@@ -211,10 +232,12 @@ def write_json(json_dict, write_path):
 
 if __name__ == '__main__':
 
-    # Check if path to jsons was provided as first argument
+    # No arguments passed
     if len(sys.argv) < 2:
         path = os.getcwd()
         save_path = os.path.join(path, save_dir)
+
+    # Check if path to jsons was provided as first argument
     elif len(sys.argv) < 3:
         if os.path.exists(sys.argv[1]):
             path = sys.argv[1]
@@ -222,6 +245,8 @@ if __name__ == '__main__':
         else:
             print("Path does not exist: {}".format(sys.argv[1]))
             sys.exit(1)
+
+    # Else if path to jsons and save path was provided
     elif len(sys.argv) < 4:
         if os.path.exists(sys.argv[1]) and os.path.exists(sys.argv[2]):
             path = sys.argv[1]
@@ -257,22 +282,23 @@ if __name__ == '__main__':
         if is_channel_json(json_file):
             continue
 
-        #Open same file twice to lazily pass one for json format verification
-        with open(json_file, 'r') as file, open(json_file, 'r') as filecopy:
-            # print(check_json_complete(json_file))
-            # if Complete json file, parse it
-            if check_json_complete(filecopy):
-                data = json.load(file)
-                json_dict = parse_json(root_keys, comment_keys, data)
+        if is_video_json(json_file):
+            #Open same file twice to lazily pass one for json format verification
+            with open(json_file, 'r') as file, open(json_file, 'r') as filecopy:
+                # print(check_json_complete(json_file))
+                # if Complete json file, parse it and save parsed json to new file
+                if check_json_complete(filecopy):
+                    data = json.load(file)
+                    json_dict = parse_json(root_keys, comment_keys, data)
 
-                print("Saving {}...".format(json_file))
-                #TODO - Save json dict to new file at save_path
-                write_json(json_dict, save_path)
-                #TODO - Record saved video ID in completed parsed_videos.txt file
-                #TODO - incorporate this parsed_videos.txt file into overall function
+                    print("Saving {}...".format(json_file))
+                    #TODO - Save json dict to new file at save_path
+                    write_json(json_dict, save_path)
+                    #TODO - Record saved video ID in completed parsed_videos.txt file
+                    #TODO - incorporate this parsed_videos.txt file into overall function
 
-            else:
-                #TODO add to broken file for later redownload
-                #NOTE - Perhaps remove from archive directory?
-                #print("Broken")
-                print()
+                else:
+                    #TODO add to broken file for later redownload
+                    #NOTE - Perhaps remove from archive directory?
+                    #print("Broken")
+                    print()
