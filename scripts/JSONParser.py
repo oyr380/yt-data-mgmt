@@ -249,7 +249,7 @@ if __name__ == '__main__':
     video_ids = get_video_ids(json_files)
     json_list = []
     #Go through each file and verify it's a complete json
-    for json_file in json_files.files:
+    for json_file in json_files.info_files:
 
         #Skip channel-jsons identifiable via parent directory
         #TODO - Find and refer to filenames instead?
