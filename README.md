@@ -1,5 +1,15 @@
-# Large Scale Data Management Project Repository
+# Large Scale Data Management Project Data Management Repository
 
+### Requirements
+#### importer.py
+* pymongo
+  * pip install pymongo
+* dnspython
+  * pip install dnspython
+
+###### note - python3 assumed
+
+---
 
 ### Todo
 * Write script to clean up batch_vids.txt and archive.txt files, removing duplicate lines
