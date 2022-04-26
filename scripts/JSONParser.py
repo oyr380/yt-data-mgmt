@@ -159,6 +159,29 @@ def parse_json(root_keys, comment_keys, json_dict):
     return ret_dict
 
 
+def get_json_value_from_path(json_path, key):
+    '''
+    Take path to .json file and key
+    Return the value of that key in the file
+    Return -1 if not found
+    '''
+    with open(json_path, 'r') as fp:
+        return get_json_value(fp, key)
+
+def get_json_value(json_file, key):
+    '''
+    Get value from a json file object for a given key
+    return value if found
+    return -1 if not found
+    '''
+    json_dict = json.load(json_file)
+
+    if key in json_dict:
+        return json_dict[key]
+    else:
+        return -1
+
+
 
 def is_channel_json(json_path):
     '''
