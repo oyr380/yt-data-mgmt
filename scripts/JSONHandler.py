@@ -10,7 +10,8 @@ PRINT_OUTPUT = True
 #python3 JSONHandler.py <key> <ext> <path>
 class JSONHandler:
     def __init__(self):
-        self.files = []
+        self.info_files = []
+        self.clean_files = []
         if len(sys.argv) < 4:
             self.path = os.getcwd()
         else:
@@ -29,7 +30,7 @@ class JSONHandler:
         else:
             self.key = sys.argv[1]
 
-        self.get_files()
+        self.get_info_files()
 
         if JSON_DEBUG:
             print("JSON HANDLER:\nKEY: {}\nPATH: {}".format(self.key, self.path))
@@ -43,7 +44,9 @@ class JSONHandler:
             for filename in files:
                 filepath = subdir + os.sep + filename
                 if filename.lower().endswith('.info.json'):
-                    self.files.append(filepath)
+                    self.info_files.append(filepath)
+                if filename.lower().endswith('.clean.json'):
+                    self.clean_files.append(filepath)
 
     def dump_keys(self):
         ret = []
@@ -71,6 +74,19 @@ class JSONHandler:
             fp.close()
 
         return ret
+
+    # Yoinked from JSONParser.py for consolidation
+    def check_json_complete(self, file):
+        '''
+        Check if the json is malformed (eg from interrupted download)
+        Takes in file object
+        '''
+        try:
+            json.load(file)
+            return True
+        except (ValueError, TypeError) as e:
+            print("ERROR: {}".format(e))
+            return False
 
 if __name__=='__main__':
     JSONHandler().dump_keys()
