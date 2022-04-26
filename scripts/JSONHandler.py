@@ -33,7 +33,7 @@ class JSONHandler:
 
         if JSON_DEBUG:
             print("JSON HANDLER:\nKEY: {}\nPATH: {}".format(self.key, self.path))
-            for each in self.files:
+            for each in self.info_files:
                 print(each)
 
 
@@ -62,7 +62,7 @@ class JSONHandler:
 
     def dump_select_key(self, key):
         ret = []
-        for each in self.files:
+        for each in self.info_files:
             fp = open(each)
             data = json.load(fp)
             if key in data:
