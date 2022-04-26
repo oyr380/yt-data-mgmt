@@ -1,13 +1,14 @@
 # Large Scale Data Management Project Data Management Repository
 
-### Requirements
+### Requirements 
+###### note - python3 assumed
 #### importer.py
 * pymongo
   * pip install pymongo
 * dnspython
   * pip install dnspython
 
-###### note - python3 assumed
+
 
 ---
 
