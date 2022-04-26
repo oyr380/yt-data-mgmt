@@ -30,7 +30,6 @@ class JSONHandler:
         else:
             self.key = sys.argv[1]
 
-        self.get_info_files()
 
         if JSON_DEBUG:
             print("JSON HANDLER:\nKEY: {}\nPATH: {}".format(self.key, self.path))
