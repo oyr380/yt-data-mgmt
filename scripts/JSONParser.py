@@ -146,7 +146,6 @@ def parse_json(root_keys, comment_keys, json_dict):
             print("Title: {} --- URL: {}".format(json_dict['title'], json_dict['webpage_url']))
             #TODO Add function to write these video IDs to separate file
             #sys.exit()
-            sys.exit()
 
 
         # Necessary for non-video json files
