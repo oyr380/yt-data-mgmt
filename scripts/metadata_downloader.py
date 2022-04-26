@@ -28,6 +28,17 @@ import JSONHandler
 COMMENT_LIMIT = False
 MAX_COMMENTS = 10000
 
+ytdlp_args = ["yt-dlp",
+                "-v",
+                "--ignore-errors",
+                "--output", "'videos/%(channel)s_%(uploader_id)s/%(upload_date)s/%(title)s.%(ext)s'",
+                "--restrict-filenames",
+                "--write-info-json",
+                "--write-comments",
+                "--write-thumbnail",
+                "--convert-thumbnails", "jpg",
+                "--skip-download",
+              ]
 #  __  __         _ _  __        _   _    _
 # |  \/  |___  __| (_)/ _|_  _  | |_| |_ (_)___
 # | |\/| / _ \/ _` | |  _| || | |  _| ' \| (_-<
@@ -124,6 +135,8 @@ def ytdlp_get_ids(channel_url):
     video_ids = []
     channel_name = ''
 
+    #TODO - Check for file with channel_name that contains video IDs
+    # If file exists and is not empty set video_ids to that
     args = ytdlp_simulate.split(' ')
     args.append(channel_url)
     # print(args)
@@ -386,17 +399,6 @@ if __name__ == '__main__':
 
     # Download video information
     #ytdlp_download = "yt-dlp --config-location"
-    ytdlp_args = ["yt-dlp",
-                "-v",
-                "--ignore-errors",
-                "--output", "'videos/%(channel)s_%(uploader_id)s/%(upload_date)s/%(title)s.%(ext)s'",
-                "--restrict-filenames",
-                "--write-info-json",
-                "--write-comments",
-                "--write-thumbnail",
-                "--convert-thumbnails", "jpg",
-                "--skip-download",
-                ]
     # List of channels from batch file for yt-dlp (no longer to be used in the yt-dlp options as this script should manage it)
     channels = []
 
@@ -429,7 +431,7 @@ if __name__ == '__main__':
     completed_channels = []
 
     # Go through each channel URL and see if it's been downloaded before
-    # Download undownloaded videos
+    # Download videos that haven't been downloaded
     for channel_url in channels:
         video_ids = []
 
