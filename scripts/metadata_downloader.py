@@ -25,7 +25,7 @@ import pandas as pd
 
 import JSONHandler
 
-COMMENT_LIMIT = False
+COMMENT_LIMIT = True
 MAX_COMMENTS = 10000
 
 ytdlp_args = ["yt-dlp",
@@ -47,16 +47,18 @@ ytdlp_args = ["yt-dlp",
 # ===============================================================
 # Modify this for your setup
 # Used as an argument alongside yt-dlp, yt-dlp can handle globbing, relative paths, etc
-#config_path = ''
-config_path = os.path.normpath("~/school/cs4243/project/temp/project.conf")
+config_path = ''
+#config_path = os.path.normpath("~/school/cs4243/project/temp/project.conf")
 
 # Path to archive file that contains already-downloaded video IDs
 #archive_path = ''
-archive_path = os.path.normpath("archive.txt")
+# archive_path = os.path.normpath("archive.txt")
+archive_path = os.path.normpath('/home/dylan/Documents/grad_school/large_data/yt-data-mgmt/archive.txt')
 
 
 # Batch file containing channel URLs
-batch_path = os.path.normpath("batch_vids.txt")
+#batch_path = os.path.normpath("batch_vids.txt")
+batch_path = os.path.normpath("/home/dylan/Documents/grad_school/large_data/yt-data-mgmt/batch-vids.txt")
 
 # ===============================================================
 
@@ -82,12 +84,14 @@ def ytdlp_get_channel_name(channel_url, seconds=5):
     channel_name = ''
 
     args = ytdlp_simulate.split(' ')
-    args.append(channel_url)
+    args.append(channel_url.strip())
     # print(args)
 
     # Run yt-dlp
     print(args)
     # Assumes everything will work
+    #while True:
+    #    bob = True
     output = subprocess.Popen(args,
                               stdin=subprocess.PIPE,
                               stdout=subprocess.PIPE,
@@ -96,11 +100,15 @@ def ytdlp_get_channel_name(channel_url, seconds=5):
 
     start_time = time.time()
     # Print and parse the output line by line as yt-dlp runs
-    print(iter(output.stdout.readline, ""))
+    #print(iter(output.stdout.readline, ""))
+    print(output.stdout.readline().decode('utf8'))
+    print("does this do?")
+    #while True:
+    #    bob = 'asdfsd'
     for stdout_line in iter(output.stdout.readline, ""):
         #print(len(stdout_line))
         if len(stdout_line) > 0:
-            print(stdout_line[:-1])
+            print(stdout_line[:-1].decode('utf8'))
             channel_match = re.search(b"^\[download\] Downloading playlist:.*", stdout_line)
 
             #Last line hit, parse out channel name
@@ -121,6 +129,7 @@ def ytdlp_get_channel_name(channel_url, seconds=5):
 
 
     output.stdout.flush()
+    output.kill()  # added ,maybe a fix?
     return channel_name
 
 
@@ -151,11 +160,11 @@ def ytdlp_get_ids(channel_url):
 
     # Print and parse the output line by line as yt-dlp runs
     # FIXME - Hangs here on T-series channel consistently, error indicates its loop line itself (immediately below)
-    print(iter(output.stdout.readline, ""))
+    print(output.stdout.readline().decode('utf8'))
     for stdout_line in iter(output.stdout.readline, ""):
         #print(len(stdout_line))
         if len(stdout_line) > 0:
-            print(stdout_line[:-1])
+            print(stdout_line[:-1].decode('utf8'))
             match = re.search(b"^\[youtube\] [A-Z,a-z,0-9,_,-]{11}", stdout_line)
             channel_match = re.search(b"^\[download\] Finished downloading playlist:.*", stdout_line)
 
@@ -171,6 +180,10 @@ def ytdlp_get_ids(channel_url):
         #print(end='')
 
     output.stdout.flush()
+    output.kill()
+    print("at playlist end")
+    #while True:
+    #   bob = True
     return video_ids
 
 def ytdlp_download_videos(videos, progress=False, quiet=False):
@@ -194,7 +207,6 @@ def ytdlp_download_videos(videos, progress=False, quiet=False):
     return num_downloads
 
 def ytdlp_download_video(video, quiet=False):
-
     args = ytdlp_args[:]
     if quiet is True:
         args.append("--quiet")
@@ -209,7 +221,9 @@ def ytdlp_download_video(video, quiet=False):
     num_cursors = 10
 
     # Run yt-dlp to download video metadata
+    print(args)
     output = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
 
     start_time = time.time()
 
@@ -218,8 +232,19 @@ def ytdlp_download_video(video, quiet=False):
     #max_time = 10
 
     # Print and parse the output line by line as yt-dlp runs
-    if quiet is False:
-        for stdout_line in iter(output.stdout.readline, ""):
+    # moving the if quiet to in the loop so that we kill comments after 10k regardless of quiet value
+    comment_count = 0
+    for stdout_line in iter(output.stdout.readline, ""):
+        print("in comments")
+        print(stdout_line)
+        if 'Downloading comment' in stdout_line.decode('utf8'):
+            print('Found a comment ~~~~~~~~~~~~~~~~')
+            comment_count += 1
+            while True:
+                bob = 9
+        else:
+            print("not a comment", stdout_line)
+        if quiet is False:
             if time.time() - start_time > max_time:
                 return 1
             #print(len(stdout_line))
@@ -228,6 +253,7 @@ def ytdlp_download_video(video, quiet=False):
 
             else:
                 break
+    
 
 
     # Wait for yt-dlp to finish running to get return code
@@ -254,6 +280,7 @@ def ytdlp_download_video(video, quiet=False):
     # add else to throw the video non-working ID into a log file for reference later on
     # Don't expect this to be very necessary
     #
+    output.kill()
     return output.returncode
 
 def write_file_list(path, write_list, filename=None):
