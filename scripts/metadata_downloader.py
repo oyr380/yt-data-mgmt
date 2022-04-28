@@ -52,13 +52,13 @@ config_path = ''
 
 # Path to archive file that contains already-downloaded video IDs
 #archive_path = ''
-# archive_path = os.path.normpath("archive.txt")
-archive_path = os.path.normpath('/home/dylan/Documents/grad_school/large_data/yt-data-mgmt/archive.txt')
+archive_path = os.path.normpath("archive.txt")
+#archive_path = os.path.normpath('/home/dylan/Documents/grad_school/large_data/yt-data-mgmt/archive.txt')
 
 
 # Batch file containing channel URLs
-#batch_path = os.path.normpath("batch_vids.txt")
-batch_path = os.path.normpath("/home/dylan/Documents/grad_school/large_data/yt-data-mgmt/batch-vids.txt")
+batch_path = os.path.normpath("batch_vids.txt")
+#batch_path = os.path.normpath("/home/dylan/Documents/grad_school/large_data/yt-data-mgmt/batch-vids.txt")
 
 # ===============================================================
 
@@ -102,9 +102,6 @@ def ytdlp_get_channel_name(channel_url, seconds=5):
     # Print and parse the output line by line as yt-dlp runs
     #print(iter(output.stdout.readline, ""))
     print(output.stdout.readline().decode('utf8'))
-    print("does this do?")
-    #while True:
-    #    bob = 'asdfsd'
     for stdout_line in iter(output.stdout.readline, ""):
         #print(len(stdout_line))
         if len(stdout_line) > 0:
@@ -181,9 +178,6 @@ def ytdlp_get_ids(channel_url):
 
     output.stdout.flush()
     output.kill()
-    print("at playlist end")
-    #while True:
-    #   bob = True
     return video_ids
 
 def ytdlp_download_videos(videos, progress=False, quiet=False):
@@ -235,15 +229,13 @@ def ytdlp_download_video(video, quiet=False):
     # moving the if quiet to in the loop so that we kill comments after 10k regardless of quiet value
     comment_count = 0
     for stdout_line in iter(output.stdout.readline, ""):
-        print("in comments")
+        #print("in comments")
         print(stdout_line)
         if 'Downloading comment' in stdout_line.decode('utf8'):
-            print('Found a comment ~~~~~~~~~~~~~~~~')
+            #print('Found a comment ~~~~~~~~~~~~~~~~')
             comment_count += 1
-            while True:
-                bob = 9
-        else:
-            print("not a comment", stdout_line)
+        #else:
+        #    print("not a comment", stdout_line)
         if quiet is False:
             if time.time() - start_time > max_time:
                 return 1
