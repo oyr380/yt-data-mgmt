@@ -235,7 +235,7 @@ def write_json(json_dict, write_path):
     #Example my/path/Pewdiepie/videoname/
     write_dir = os.path.join(write_path, json_dict['channel'], '')
     #Example videoname_o23_sz5412p.json
-    filename = json_dict['title'] + '_' + json_dict['id'] + ".clean.json"
+    filename = json_dict['id'] + ".clean.json"
 
     for c in illegal_filename_characters:
         if c in filename:
