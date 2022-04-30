@@ -333,14 +333,23 @@ def append_file_list(path, write_list, filename=None):
     #     #os.makedirs(path)
     #     return 1
 
+
     #Check if path is a directory and filename was set
     if os.path.isdir(path) and filename is not None:
+        if not os.path.exists(os.path.join(path, filename)):
+            with open(os.path.join(path, filename), 'w') as wf:
+                wf.write('')
+
         with open(os.path.join(path, filename), 'a') as wf:
             wf.write('\n'.join(str(line) for line in write_list))
             wf.write('\n')
 
     #Path is to file or path isn't a file but filename is None, implying path should be a filepath
     elif os.path.isfile(path) or not os.path.isfile(path) and filename is None:
+        if not os.path.exists(os.path.join(path)):
+            with open(os.path.join(path, filename), 'w') as wf:
+                wf.write()
+
         with open(os.path.join(path), 'a') as wf:
             wf.write('\n'.join(str(line) for line in write_list))
             wf.write('\n')
@@ -491,6 +500,7 @@ if __name__ == '__main__':
             #with open(os.path.join(batch_path), 'r+') as fp:
 
             #Append to completed file
+            completed_channels.append(channel_url)
             append_file_list(os.getcwd(), completed_channels, 'completed.txt')
 
             #Remove channel URL from batch_vids.txt
