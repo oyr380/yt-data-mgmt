@@ -26,7 +26,9 @@ import pandas as pd
 import JSONHandler
 
 COMMENT_LIMIT = True
+TOP_COMMENTS_FIRST = True
 MAX_COMMENTS = 10000
+
 
 ytdlp_args = ["yt-dlp",
                 "-v",
@@ -202,14 +204,33 @@ def ytdlp_download_videos(videos, progress=False, quiet=False):
 
 def ytdlp_download_video(video, quiet=False):
     args = ytdlp_args[:]
+    # Max time to spend on a single video in seconds
+    max_time = 3600 * 10
     if quiet is True:
         args.append("--quiet")
 
     # Comment limit is set
     if COMMENT_LIMIT is True and MAX_COMMENTS > 0:
-        args.append("--extractor-args \"youtube:max_comments={},all,all,all\"".format(MAX_COMMENTS))
+        #args.append("--extractor-args \"youtube:max_comments={},all,all,all\"".format(MAX_COMMENTS))
+        #args.append("--extractor-args youtube:max_comments={},all,all,all".format(MAX_COMMENTS))
+        args.append("--extractor-args")
+        args.append("youtube:max_comments=" + str(MAX_COMMENTS) + ",all,all,all")
+
+        if TOP_COMMENTS_FIRST is True:
+            args.append("--extractor-args")
+            args.append("youtube:comment_sort=top")
+
+        max_time = MAX_COMMENTS * 10
+
+    #If comment limit is set to zero, don't write any comments
+    elif COMMENT_LIMIT is True and MAX_COMMENTS == 0:
+        args.remove("--write-comments")
 
     args.append("https://www.youtube.com/watch?v=" + video)
+
+    for arg in args:
+        print(arg, end=' ')
+    print()
 
     spinner = spinning_cursor()
     num_cursors = 10
@@ -217,51 +238,39 @@ def ytdlp_download_video(video, quiet=False):
     # Run yt-dlp to download video metadata
     print(args)
     output = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
+    #NOTE - this may be useful for quiet option
+    #output = subprocess.run(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     start_time = time.time()
 
-    # 10 hour max limit for a single video to finish
-    max_time = 3600 * 10
-    #max_time = 10
-
-    # Print and parse the output line by line as yt-dlp runs
-    # moving the if quiet to in the loop so that we kill comments after 10k regardless of quiet value
-    comment_count = 0
     for stdout_line in iter(output.stdout.readline, ""):
-        #print("in comments")
-        print(stdout_line)
-        if 'Downloading comment' in stdout_line.decode('utf8'):
-            #print('Found a comment ~~~~~~~~~~~~~~~~')
-            comment_count += 1
-        #else:
-        #    print("not a comment", stdout_line)
-        if quiet is False:
-            if time.time() - start_time > max_time:
-                return 1
-            #print(len(stdout_line))
-            if len(stdout_line) > 0:
-                print(stdout_line[:-1])
-
-            else:
-                break
-    
-
-
-    # Wait for yt-dlp to finish running to get return code
-    while output.poll() is None:
         if time.time() - start_time > max_time:
             return 1
-        # Print loading icon so you know it's working
-        # If this stops spinning, something broke
-        #sys.stdout.write(next(spinner))
-        progress = next(spinner)
-        for i in range(num_cursors):
-            sys.stdout.write(progress)
-        sys.stdout.flush()
-        time.sleep(0.001)
-        for i in range(num_cursors):
-            sys.stdout.write('\b')
+        #print(len(stdout_line))
+        if len(stdout_line) > 0:
+            print(stdout_line[:-1])
+
+        else:
+            break
+
+    # NOTE - Comments left in for future reference
+    # Wait for yt-dlp to finish running to get return code
+    while output.poll() is None:
+        #if output.poll() is not None:
+            #break
+        if time.time() - start_time > max_time:
+            return 1
+        #print(stdout_line)
+        #Print loading icon so you know it's working
+        #If this stops spinning, something broke
+        sys.stdout.write(next(spinner))
+        #progress = next(spinner)
+        #for i in range(num_cursors):
+            #sys.stdout.write(progress)
+        #sys.stdout.flush()
+        #time.sleep(0.001)
+        #for i in range(num_cursors):
+            #sys.stdout.write('\b')
         #time.sleep(0.5)
 
     # If return code is 0 (success) then append video ID to archive file
@@ -307,6 +316,7 @@ def write_file_list(path, write_list, filename=None):
     return 0
 
 
+#FIXME
 def append_file_list(path, write_list, filename=None):
     '''
     Append list to file
@@ -371,7 +381,7 @@ def remove_file_list(path, remove_list, filename=None):
                 while element in lines:
                     lines.remove(element)
 
-            #fp.seek(0,0)
+            fp.seek(0)
             fp.write('\n'.join(str(line) for line in lines))
             fp.write('\n')
 
@@ -384,7 +394,7 @@ def remove_file_list(path, remove_list, filename=None):
                 while element in lines:
                     lines.remove(element)
 
-            #fp.seek(0,0)
+            fp.seek(0)
             fp.write('\n'.join(str(line) for line in lines))
             fp.write('\n')
 
@@ -423,6 +433,8 @@ if __name__ == '__main__':
 
     # Get a list of video IDs in existing json files
     id_list = get_ids_from_jsons()
+
+    #FIXME - Not appending correctly
     append_file_list(archive_path, id_list)
 
     # Create dict where key is video ID and value is key number
@@ -434,11 +446,6 @@ if __name__ == '__main__':
     with open(os.path.join(batch_path), 'r') as batch_file:
         lines = batch_file.readlines()
         for line in lines:
-            #If the URL doesn't end in a / add one
-            #Assumes specific format currently adhered to in current list
-            # if line[-2] != "/":
-            #     line = line.rstrip('\n') + '/'
-
             channels.append(line)
 
 
@@ -462,52 +469,17 @@ if __name__ == '__main__':
             if video not in archive_dict:
                 new_downloads.append(video)
 
-        print("Downloading video info from: {}".format(ytdlp_get_channel_name(channel_url)))
+        #print("Downloading video info from: {}".format(ytdlp_get_channel_name(channel_url)))
+        print("Downloading video info from: {}".format(channel_name))
+
         #num_downloads = ytdlp_download_videos(list(dict.fromkeys(new_downloads)), True, True)
         num_downloads = ytdlp_download_videos(list(dict.fromkeys(new_downloads)), True, False)
-        #If there are no new_downloads (videos) OR all videos were downloaded, then mark ias compelted
-        if len(new_downloads) == 0 or num_downloads == len(new_downloads):
 
+        #If there are no new_downloads (videos) OR all videos were downloaded, then mark channel complete
+        if len(new_downloads) == 0 or num_downloads == len(new_downloads):
             #Remove from batch file and append to completed file
             with open(os.path.join(batch_path), 'r+') as fp:
                 #Append to completed file
                 append_file_list(os.getcwd(), completed_channels, 'completed.txt')
 
                 remove_file_list(os.path.join(batch_path), [channel_url])
-
-
-    # FIXME - Can add harmless duplicates to file
-    # Solution may be best in another script to replicate "sort -u" capability
-    # with open('batch_vids.txt', 'r+') as fp:
-    #     lines = fp.readlines()
-
-    #     index = 0
-    #     #print(lines)
-    #     for line in lines:
-    #         #If the URL doesn't end in a / add one
-    #         #Assumes specific format currently adhered to in current list
-    #         if line[-2] != "/":
-    #             line = line.rstrip('\n') + '/'
-    #         lines[index] = line
-    #         index += 1
-    #     for channel in completed_channels:
-    #         #if channel[:-1] in lines:
-    #         # Was accounting for the trailing slash or not but 2nd if should be redundant now
-    #         if channel in lines:
-    #             print("COMPLETED: " + channel)
-    #             lines.remove(channel)
-    #         if (channel[:-2] + '\n') in lines:
-    #             print("COMPLETED: " + channel)
-    #             lines.remove(channel[:-2] + '\n')
-
-    #     # Point back to beginning of file before writing again
-    #     # Otherwise it'll just dupe some or all of the file
-    #     fp.seek(0, 0)
-
-    #     # If there are no more urls in file, write empty file
-    #     if len(lines) == 0:
-    #         with open('batch_vids.txt', 'w') as fp:
-    #             pass
-    #     # Write remaining lines to file
-    #     else:
-    #         fp.writelines(lines)

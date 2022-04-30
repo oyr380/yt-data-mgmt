@@ -313,7 +313,8 @@ if __name__ == '__main__':
                     data = json.load(file)
                     json_dict = parse_json(root_keys, comment_keys, data)
 
-                    print("Saving {}...".format(json_file))
+                    print("Saving {} as {}...".format(json_file, json_dict['id']))
+                    sys.exit()
                     #TODO - Save json dict to new file at save_path
                     write_json(json_dict, save_path)
                     #TODO - Record saved video ID in completed parsed_videos.txt file
