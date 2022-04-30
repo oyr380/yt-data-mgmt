@@ -27,7 +27,7 @@ import JSONHandler
 
 COMMENT_LIMIT = True
 TOP_COMMENTS_FIRST = True
-MAX_COMMENTS = 0
+MAX_COMMENTS = 10000
 
 
 ytdlp_args = ["yt-dlp",
