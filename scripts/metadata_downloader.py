@@ -27,7 +27,7 @@ import JSONHandler
 
 COMMENT_LIMIT = True
 TOP_COMMENTS_FIRST = True
-MAX_COMMENTS = 10000
+MAX_COMMENTS = 0
 
 
 ytdlp_args = ["yt-dlp",
@@ -228,15 +228,11 @@ def ytdlp_download_video(video, quiet=False):
 
     args.append("https://www.youtube.com/watch?v=" + video)
 
-    for arg in args:
-        print(arg, end=' ')
-    print()
-
     spinner = spinning_cursor()
     num_cursors = 10
 
     # Run yt-dlp to download video metadata
-    print(args)
+    #print(args)
     output = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     #NOTE - this may be useful for quiet option
     #output = subprocess.run(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -374,6 +370,7 @@ def remove_file_list(path, remove_list, filename=None):
     #Open file and remove every instance of element in remove_list[] from the file
     #Write non-matching lines back to the file
 
+    #Check if path is a directory and filename was set
     if os.path.isdir(path) and filename is not None:
         with open(os.path.join(path, filename), 'r+') as fp:
             lines = fp.readlines()
@@ -381,21 +378,34 @@ def remove_file_list(path, remove_list, filename=None):
                 while element in lines:
                     lines.remove(element)
 
-            fp.seek(0)
-            fp.write('\n'.join(str(line) for line in lines))
-            fp.write('\n')
+            #Done to remove blank lines though would get other strange lines as well
+            for curr_line in lines:
+                if len(curr_line) < 10:
+                    lines.remove(curr_line)
 
+        #Write remaining lines back to file
+        with open(os.path.join(path), 'w') as fp:
+            fp.write(''.join(str(line) for line in lines))
+            fp.write('\n')
 
     #Path is to file or path isn't a file but filename is None, implying path should be a filepath
     elif os.path.isfile(path) or not os.path.isfile(path) and filename is None:
         with open(os.path.join(path), 'r+') as fp:
             lines = fp.readlines()
+            print(lines)
+            print(remove_list)
             for element in remove_list:
                 while element in lines:
                     lines.remove(element)
 
-            fp.seek(0)
-            fp.write('\n'.join(str(line) for line in lines))
+            #Done to remove blank lines though would get other strange lines as well
+            for curr_line in lines:
+                if len(curr_line) < 10:
+                    lines.remove(curr_line)
+
+        #Write remaining lines back to file
+        with open(os.path.join(path), 'w') as fp:
+            fp.write(''.join(str(line) for line in lines))
             fp.write('\n')
 
     else:
@@ -478,8 +488,10 @@ if __name__ == '__main__':
         #If there are no new_downloads (videos) OR all videos were downloaded, then mark channel complete
         if len(new_downloads) == 0 or num_downloads == len(new_downloads):
             #Remove from batch file and append to completed file
-            with open(os.path.join(batch_path), 'r+') as fp:
-                #Append to completed file
-                append_file_list(os.getcwd(), completed_channels, 'completed.txt')
+            #with open(os.path.join(batch_path), 'r+') as fp:
 
-                remove_file_list(os.path.join(batch_path), [channel_url])
+            #Append to completed file
+            append_file_list(os.getcwd(), completed_channels, 'completed.txt')
+
+            #Remove channel URL from batch_vids.txt
+            remove_file_list(os.path.join(batch_path), [channel_url])
