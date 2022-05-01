@@ -58,7 +58,10 @@ if __name__ == '__main__':
     db = client['project-test']
     video_collection = db.videos
 
+    database_vids = video_collection.distinct("id")
 
+    db_dict = dict(zip(database_vids, range(len(database_vids)) ))
+    print(list(db_dict.keys())[:10])
 
     print("Recursively finding all *.clean.json files under \"{}\"".format(path))
     # Find and store all .clean.json files in list
@@ -68,12 +71,14 @@ if __name__ == '__main__':
     clean_jsons = jsons.clean_files
     info_jsons = jsons.info_files
 
+
     count = 0
     for json_path in clean_jsons:
         val = JSONParser.get_json_value_from_path(json_path, 'id')
         video_title = JSONParser.get_json_value_from_path(json_path, 'title')
         # Upload json to videos collection if video not found
-        if not video_collection.find_one({'id':val}):
+        #if not video_collection.find_one({'id':val}):
+        if val not in db_dict:
             with open(json_path, 'r') as fp:
                 json_obj = json.load(fp)
                 try:
