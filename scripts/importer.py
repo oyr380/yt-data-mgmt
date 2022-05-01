@@ -110,6 +110,6 @@ if __name__ == '__main__':
                         print("{} failed to import into {} collection.".format(uploader, 'channels'))
                 print("---------")
 
-            count +=1
+        count +=1
 
     print("Uploaded {} documents".format(count))
