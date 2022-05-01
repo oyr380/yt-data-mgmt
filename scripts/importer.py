@@ -104,10 +104,10 @@ if __name__ == '__main__':
                 with open(json_path, 'r') as fp:
                     json_obj = json.load(fp)
                     try:
-                        print("Importing {} into {} collection.".format(video_title, 'channels'))
+                        print("Importing {} into {} collection.".format(uploader, 'channels'))
                         channel_collection.insert_one(json_obj)
                     except:
-                        print("{} failed to import into {} collection.".format(video_title, 'channels'))
+                        print("{} failed to import into {} collection.".format(uploader, 'channels'))
                 print("---------")
 
             count +=1
