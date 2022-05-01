@@ -57,11 +57,13 @@ if __name__ == '__main__':
 
     db = client['project-test']
     video_collection = db.videos
+    channel_collection = db.channels
 
     database_vids = video_collection.distinct("id")
+    database_channels = channel_collection.distinct("id")
 
-    db_dict = dict(zip(database_vids, range(len(database_vids)) ))
-    print(list(db_dict.keys())[:10])
+    vid_dict = dict(zip(database_vids, range(len(database_vids)) ))
+    channel_dict = dict(zip(database_channels, range(len(database_channels)) ))
 
     print("Recursively finding all *.clean.json files under \"{}\"".format(path))
     # Find and store all .clean.json files in list
@@ -71,22 +73,43 @@ if __name__ == '__main__':
     clean_jsons = jsons.clean_files
     info_jsons = jsons.info_files
 
-
     count = 0
+
+
+
     for json_path in clean_jsons:
         val = JSONParser.get_json_value_from_path(json_path, 'id')
-        video_title = JSONParser.get_json_value_from_path(json_path, 'title')
-        # Upload json to videos collection if video not found
-        #if not video_collection.find_one({'id':val}):
-        if val not in db_dict:
-            with open(json_path, 'r') as fp:
-                json_obj = json.load(fp)
-                try:
-                    print("Importing {} into {} collection.".format(video_title, 'videos'))
-                    video_collection.insert_one(json_obj)
-                except:
-                    print("{} failed to import into {} collection.".format(video_title, 'videos'))
-            print("---------")
+
+        #If this is a video json
+        #Video IDs are 11 characters long
+        if len(val) == 11:
+            video_title = JSONParser.get_json_value_from_path(json_path, 'title')
+            # Upload json to videos collection if video not found
+            # If video is not already in collection, try to import it
+            if val not in vid_dict:
+                with open(json_path, 'r') as fp:
+                    json_obj = json.load(fp)
+                    try:
+                        print("Importing {} into {} collection.".format(video_title, 'videos'))
+                        video_collection.insert_one(json_obj)
+                    except:
+                        print("{} failed to import into {} collection.".format(video_title, 'videos'))
+                print("---------")
+
+        # If this is a channel json
+        elif len(val) == 24:
+            uploader = JSONParser.get_json_value_from_path(json_path, 'uploader')
+
+            if val not in channel_dict:
+                with open(json_path, 'r') as fp:
+                    json_obj = json.load(fp)
+                    try:
+                        print("Importing {} into {} collection.".format(video_title, 'channels'))
+                        channel_collection.insert_one(json_obj)
+                    except:
+                        print("{} failed to import into {} collection.".format(video_title, 'channels'))
+                print("---------")
+
             count +=1
 
     print("Uploaded {} documents".format(count))

@@ -298,11 +298,6 @@ if __name__ == '__main__':
     #Go through each file and verify it's a complete json
     for json_file in json_files.info_files:
 
-        #Skip channel-jsons identifiable via parent directory
-        #TODO - Find and refer to filenames instead?
-        #This should work as is but may have unforeseen issues
-        if is_channel_json(json_file):
-            continue
 
         if is_video_json(json_file):
             #Open same file twice to lazily pass one for json format verification
@@ -324,3 +319,14 @@ if __name__ == '__main__':
                     #NOTE - Perhaps remove from archive directory?
                     #print("Broken")
                     print()
+
+        elif is_channel_json(json_file):
+            with open(json_file, 'r') as file, open(json_file, 'r') as filecopy:
+                # print(check_json_complete(json_file))
+                # if Complete json file, parse it and save parsed json to new file
+                if check_json_complete(filecopy):
+                    data = json.load(file)
+                    json_dict = parse_json(root_keys, comment_keys, data)
+
+                    print("Saving {} as {}...".format(json_file, json_dict['id']))
+                    write_json(json_dict, save_path)
