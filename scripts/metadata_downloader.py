@@ -211,14 +211,15 @@ def ytdlp_download_video(video, quiet=False):
 
     # Comment limit is set
     if COMMENT_LIMIT is True and MAX_COMMENTS > 0:
+        args.append("--extractor-args")
         #args.append("--extractor-args \"youtube:max_comments={},all,all,all\"".format(MAX_COMMENTS))
         #args.append("--extractor-args youtube:max_comments={},all,all,all".format(MAX_COMMENTS))
-        args.append("--extractor-args")
-        args.append("youtube:max_comments=" + str(MAX_COMMENTS) + ",all,all,all")
+        args.append("youtube:max_comments={},{},{},all".format(MAX_COMMENTS, MAX_COMMENTS, MAX_COMMENTS))
 
         if TOP_COMMENTS_FIRST is True:
-            args.append("--extractor-args")
-            args.append("youtube:comment_sort=top")
+            args[-1] = args[-1] + ";comment_sort=top"
+            #args.append("youtube:comment_sort=top")
+
 
         max_time = MAX_COMMENTS * 10
 
