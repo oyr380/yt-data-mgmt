@@ -14,6 +14,7 @@
 
 ### Todo
 * Find out channel keys we care about
+* Log failed imports to mongodb
 
 ---
 ### Optional Todo
