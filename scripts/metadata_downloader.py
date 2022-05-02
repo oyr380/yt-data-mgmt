@@ -27,7 +27,7 @@ import JSONHandler
 
 COMMENT_LIMIT = True
 TOP_COMMENTS_FIRST = True
-MAX_COMMENTS = 10000
+MAX_COMMENTS = 0
 
 
 ytdlp_args = ["yt-dlp",
@@ -90,10 +90,7 @@ def ytdlp_get_channel_name(channel_url, seconds=5):
     # print(args)
 
     # Run yt-dlp
-    print(args)
     # Assumes everything will work
-    #while True:
-    #    bob = True
     output = subprocess.Popen(args,
                               stdin=subprocess.PIPE,
                               stdout=subprocess.PIPE,
@@ -149,8 +146,26 @@ def ytdlp_get_ids(channel_url):
     args.append(channel_url)
     # print(args)
 
+
+    #Check if there's a file with the channel's info
+    channel_name = ytdlp_get_channel_name(channel_url)
+
+
+    channel_name = channel_name.replace(' ','_')
+    video_id_filepath = os.path.join("channel_video_ids", "{}_vid_ids.txt".format(channel_name))
+
+    #If channel video IDs exists in file, get the video IDs from there
+    #Faster than waiting to parse the entire channel for larger channels
+    if os.path.exists(video_id_filepath):
+        with open(video_id_filepath, 'r') as fp:
+            lines = fp.readlines()
+            for vid_id in lines:
+                video_ids.append(vid_id.replace('\n',''))
+
+        return set(video_ids)
+
+
     # Run yt-dlp
-    print(args)
     # Assumes everything will work
     output = subprocess.Popen(args,
                               stdin=subprocess.PIPE,
@@ -180,10 +195,21 @@ def ytdlp_get_ids(channel_url):
 
     output.stdout.flush()
     output.kill()
-    return video_ids
+
+
+
+    #Write video_ids to file. Set to append just to be safe
+    if not os.path.exists(video_id_filepath):
+        video_id_dir = os.path.split(video_id_filepath)[0]
+        if not os.path.isdir(video_id_dir):
+            os.mkdir(video_id_dir)
+
+        with open(video_id_filepath, 'a+') as fp:
+            fp.write('\n'.join(str(line) for line in video_ids))
+
+    return set(video_ids)
 
 def ytdlp_download_videos(videos, progress=False, quiet=False):
-
     num_downloads = 0
     total_videos = len(videos)
 
@@ -194,7 +220,6 @@ def ytdlp_download_videos(videos, progress=False, quiet=False):
             print("Video {}/{}  - id: {} - Total Time: {}".format(num_downloads + 1, total_videos, video, int(time.time() - start_time)))
         # If video is successfully downloaded, count it
         if ytdlp_download_video(video, quiet) == 0:
-            append_file_list(archive_path, ["youtube " + video])
             num_downloads += 1
 
         #Decrement total num of vids left as one failed
@@ -244,7 +269,6 @@ def ytdlp_download_video(video, quiet=False):
     for stdout_line in iter(output.stdout.readline, ""):
         if time.time() - start_time > max_time:
             return 1
-        #print(len(stdout_line))
         if len(stdout_line) > 0:
             print(stdout_line[:-1])
 
@@ -335,29 +359,57 @@ def append_file_list(path, write_list, filename=None):
     #     #os.makedirs(path)
     #     return 1
 
+    file_to_append = ''
 
+    write_list = set(write_list)
+    lines = []
     #Check if path is a directory and filename was set
     if os.path.isdir(path) and filename is not None:
-        if not os.path.exists(os.path.join(path, filename)):
-            with open(os.path.join(path, filename), 'w') as wf:
-                wf.write('')
+        file_to_append = os.path.join(path, filename)
+        # if not os.path.exists(os.path.join(path, filename)):
+        #     with open(os.path.join(path, filename), 'w') as wf:
+        #         wf.write('')
 
-        with open(os.path.join(path, filename), 'a') as wf:
-            wf.write('\n'.join(str(line) for line in write_list))
-            wf.write('\n')
+        # with open(os.path.join(path, filename), 'a') as wf:
+        #     wf.write('\n'.join(str(line) for line in write_list))
 
     #Path is to file or path isn't a file but filename is None, implying path should be a filepath
-    elif os.path.isfile(path) or not os.path.isfile(path) and filename is None:
-        if not os.path.exists(os.path.join(path)):
-            with open(os.path.join(path, filename), 'w') as wf:
-                wf.write()
+    # TODO Handle being given directory name as path
+    # Shouldn't matter for project
+    elif os.path.isfile(path):
+        file_to_append = os.path.join(path)
 
-        with open(os.path.join(path), 'a') as wf:
-            wf.write('\n'.join(str(line) for line in write_list))
-            wf.write('\n')
+        # if not os.path.exists(os.path.join(path)):
+        #     with open(os.path.join(path, filename), 'w') as wf:
+        #         wf.write()
+
+
+    #Path isn't a file and filename is none
+    elif not os.path.isfile(path) and filename is None:
+        return 1
 
     else:
         return 1
+
+    #Read lines from file to store them
+    with open(os.path.join(file_to_append), 'r') as rf:
+        lines = rf.readlines()
+
+    #Add the write_list lines to the file's existing lines
+    for line in write_list:
+        lines.append(line)
+
+
+    # Clear write_list and then populate it with all of the lines, stripping any newlines
+    write_list = []
+    for line in set(lines):
+        write_list.append(line.rstrip())
+
+
+    # Write all lines back to the file
+    with open(os.path.join(file_to_append), 'w') as wf:
+        wf.write('\n'.join(str(line) for line in write_list))
+        wf.write('\n')
 
     return 0
 
@@ -403,8 +455,6 @@ def remove_file_list(path, remove_list, filename=None):
     elif os.path.isfile(path) or not os.path.isfile(path) and filename is None:
         with open(os.path.join(path), 'r+') as fp:
             lines = fp.readlines()
-            print(lines)
-            print(remove_list)
             for element in remove_list:
                 while element in lines:
                     lines.remove(element)
@@ -456,18 +506,23 @@ if __name__ == '__main__':
     id_list = get_ids_from_jsons()
 
     #FIXME - Not appending correctly
-    append_file_list(archive_path, id_list)
+    if append_file_list(archive_path, id_list) != 0:
+        print(archive_path)
+        print(id_list)
 
     # Create dict where key is video ID and value is key number
     archive_dict = pd.read_csv(archive_path, delimiter=' ', header=None).to_dict()[1]
     archive_dict = dict([(value, key) for key, value in archive_dict.items()])
 
 
+
     # Reads all of the channel URLs into the channels[] list
     with open(os.path.join(batch_path), 'r') as batch_file:
         lines = batch_file.readlines()
         for line in lines:
-            channels.append(line)
+            # Avoid newlines
+            if len(line) > 2:
+                channels.append(line)
 
 
 
@@ -493,8 +548,9 @@ if __name__ == '__main__':
         #print("Downloading video info from: {}".format(ytdlp_get_channel_name(channel_url)))
         print("Downloading video info from: {}".format(channel_name))
 
-        #num_downloads = ytdlp_download_videos(list(dict.fromkeys(new_downloads)), True, True)
-        num_downloads = ytdlp_download_videos(list(dict.fromkeys(new_downloads)), True, False)
+        if len(new_downloads) > 0:
+            #num_downloads = ytdlp_download_videos(list(dict.fromkeys(new_downloads)), True, True)
+            num_downloads = ytdlp_download_videos(list(dict.fromkeys(new_downloads)), True, False)
 
         #If there are no new_downloads (videos) OR all videos were downloaded, then mark channel complete
         if len(new_downloads) == 0 or num_downloads == len(new_downloads):
