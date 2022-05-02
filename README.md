@@ -13,6 +13,7 @@
 ---
 
 ### Todo
+* Get Channel json files
 * Find out channel keys we care about
 * Log failed imports to mongodb
 
