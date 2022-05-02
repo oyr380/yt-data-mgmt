@@ -194,6 +194,7 @@ def ytdlp_download_videos(videos, progress=False, quiet=False):
             print("Video {}/{}  - id: {} - Total Time: {}".format(num_downloads + 1, total_videos, video, int(time.time() - start_time)))
         # If video is successfully downloaded, count it
         if ytdlp_download_video(video, quiet) == 0:
+            append_file_list(archive_path, ["youtube " + video])
             num_downloads += 1
 
         #Decrement total num of vids left as one failed

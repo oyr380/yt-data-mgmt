@@ -95,6 +95,7 @@ if __name__ == '__main__':
                     except:
                         print("{} failed to import into {} collection.".format(video_title, 'videos'))
                 print("---------")
+                count +=1
 
         # If this is a channel json
         elif len(val) == 24:
@@ -109,7 +110,8 @@ if __name__ == '__main__':
                     except:
                         print("{} failed to import into {} collection.".format(uploader, 'channels'))
                 print("---------")
+                sys.exit()
+                count +=1
 
-        count +=1
 
     print("Uploaded {} documents".format(count))
