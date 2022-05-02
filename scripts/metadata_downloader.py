@@ -37,8 +37,8 @@ ytdlp_args = ["yt-dlp",
                 "--restrict-filenames",
                 "--write-info-json",
                 "--write-comments",
-                "--write-thumbnail",
-                "--convert-thumbnails", "jpg",
+                #"--write-thumbnail",
+                #"--convert-thumbnails", "jpg",
                 "--skip-download",
               ]
 #  __  __         _ _  __        _   _    _
