@@ -64,7 +64,7 @@ Each script is designed to pick up where it last left off where possible, avoidi
 These are features we'd like to implement, time permitting.
 * Log failed imports to file 
 * Shrink JSONs too big for database by truncating comments
-  * Ideally this would get as close to a target size (16MB) as possible 
+  * Ideally this would get as close to a target size (16MB) as possible (not relevant to default settings)
 
 ---
 
