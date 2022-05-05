@@ -28,6 +28,8 @@ The MongoDB database used has over **14GB** of data **after compression** with o
 
 MongoDB indexing was used to maintain query performance for relevant queries presented from the website. Queries on exceptionally large channels would take up to a minute but should now take less than 1 second.
 
+Project hosted on heroku at https://lsdm-yt-data.herokuapp.com/
+
 #### JSONHandler.py and JSONParser.py
 Both use native Python libraries.
 
