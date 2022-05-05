@@ -61,6 +61,8 @@ General workflow is as follows
 The scripts do the heavy lifting by default. For custom/advanced use, check the README in the scripts directory.
 Each script is designed to pick up where it last left off where possible, avoiding duplicating efforts and saving time.
 
+Channels and videos in the database are automatically reflected on the website used for the project.
+
 ---
 
 ### Todo 
