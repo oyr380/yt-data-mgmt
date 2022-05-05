@@ -501,18 +501,29 @@ if __name__ == '__main__':
     #ytdlp_download = "yt-dlp --config-location"
     # List of channels from batch file for yt-dlp (no longer to be used in the yt-dlp options as this script should manage it)
     channels = []
+    archive_dict = []
 
     # Get a list of video IDs in existing json files
     id_list = get_ids_from_jsons()
 
-    #FIXME - Not appending correctly
+    # Add video IDs from existing json files into archive file
     if append_file_list(archive_path, id_list) != 0:
         print(archive_path)
         print(id_list)
 
-    # Create dict where key is video ID and value is key number
-    archive_dict = pd.read_csv(archive_path, delimiter=' ', header=None).to_dict()[1]
-    archive_dict = dict([(value, key) for key, value in archive_dict.items()])
+
+
+
+    #If the archive file exists and has at least 1 line then open it using pandas
+    if os.path.isfile(archive_path):
+        linecount = -1
+        with open(archive_path, 'r') as fp:
+            linecount = len(fp.readlines())
+
+        if linecount > 0:
+            # Create dict where key is video ID and value is key number
+            archive_dict = pd.read_csv(archive_path, delimiter=' ', header=None).to_dict()[1]
+            archive_dict = dict([(value, key) for key, value in archive_dict.items()])
 
 
 
