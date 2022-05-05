@@ -15,8 +15,8 @@ Scripts were primarily run in Linux environments, including WSL 2.0, though were
 
 * Reliable internet connection
 * Python 3
-  * dnspython
-  * pymongo
+  * [dnspython](https://www.dnspython.org/)
+  * [pymongo](https://pypi.org/project/pymongo/)
 * [yt-dlp](https://github.com/yt-dlp/yt-dlp) installed and in current path/environment.
 * [MongoDB](https://mongodb.com/) with two collections named *videos* and *channels* and write access
 
@@ -32,9 +32,9 @@ MongoDB indexing was used to maintain query performance for relevant queries pre
 Both use native Python libraries.
 
 #### importer.py
-* pymongo
+* [pymongo](https://pypi.org/project/pymongo/)
   * pip install pymongo
-* dnspython
+* [dnspython](https://www.dnspython.org/)
   * pip install dnspython
 * JSONHandler.py (above)
 * JSONParser.py (above)
