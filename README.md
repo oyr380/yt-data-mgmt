@@ -2,6 +2,7 @@
 
 ## Table of Contents
 - [Requirements](#requirements)
+- [Overview](#overview)
 - [How to use](#how-to-use)
 - [TODO](#todo)
 - [Done](#done)
@@ -13,10 +14,18 @@
 Scripts were primarily run in Linux environments, including WSL 2.0, though were also used on Windows 10 and should work on Windows 10+.
 
 * Reliable internet connection
+* Python 3
+  * dnspython
+  * pymongo
 * [yt-dlp](https://github.com/yt-dlp/yt-dlp) installed and in current path/environment.
 * [MongoDB](https://mongodb.com/) with two collections named *videos* and *channels* and write access
 
-###### note - python3 assumed
+### Overview
+This is part of a project used to collect, clean, analyze, and present over 10GB of data. Over 40GB of YouTube data was downloaded and over ~20GB of data has been cleaned uploaded to the directory across at least 5 separate devices. 
+The MongoDB database used has over **14GB** of data **after compression** with over **140,000** documents representing individual data or channel data in the database.
+![image](https://user-images.githubusercontent.com/90591648/166892693-c56d4fc1-6867-4681-9656-7292183c6883.png)
+
+MongoDB indexing was used to maintain query performance for relevant queries presented from the website. Queries on exceptionally large channels would take up to a minute but should now take less than 1 second.
 
 #### JSONHandler.py and JSONParser.py
 Both use native Python libraries.
