@@ -28,7 +28,7 @@ def mongo_connect(URI):
         print("ERROR: Could not connect to database.")
         sys.exit(1)
 
-    print("Connected to database.")
+    print("Connected to database")
     return client
 
 def check_jsons_complete(jsons):
@@ -84,40 +84,47 @@ if __name__ == '__main__':
         val = JSONParser.get_json_value_from_path(json_path, 'id')
         counter += 1
 
-        if len(val) == 11 or len(val == 24):
-            print("File Progress - {}/{}".format(counter, total))
-            #If this is a video json
-            #Video IDs are 11 characters long
-            if len(val) == 11:
-                video_title = JSONParser.get_json_value_from_path(json_path, 'title')
-                # Upload json to videos collection if video not found
-                # If video is not already in collection, try to import it
-                if val not in vid_dict:
-                    with open(json_path, 'r') as fp:
-                        json_obj = json.load(fp)
-                        try:
-                            print("Importing {} into {} collection.".format(video_title, 'videos'))
-                            video_collection.insert_one(json_obj)
-                        except:
-                            print("{} failed to import into {} collection.".format(video_title, 'videos'))
-                    print("---------")
-                    upload_count +=1
+        try:
+            if len(val) == 11 or len(val) == 24:
+                print("File Progress - {}/{}".format(counter, total))
+                #If this is a video json
+                #Video IDs are 11 characters long
+                if len(val) == 11:
+                    video_title = JSONParser.get_json_value_from_path(json_path, 'title')
+                    # Upload json to videos collection if video not found
+                    # If video is not already in collection, try to import it
+                    if val not in vid_dict:
+                        with open(json_path, 'r') as fp:
+                            json_obj = json.load(fp)
+                            try:
+                                print("Importing {} into {} collection.".format(video_title, 'videos'))
+                                video_collection.insert_one(json_obj)
+                            except:
+                                print("{} failed to import into {} collection.".format(video_title, 'videos'))
+                        print("---------")
+                        upload_count +=1
 
-            # If this is a channel json
-            elif len(val) == 24:
-                uploader = JSONParser.get_json_value_from_path(json_path, 'uploader')
+                # If this is a channel json
+                elif len(val) == 24:
+                    uploader = JSONParser.get_json_value_from_path(json_path, 'id')
 
-                if val not in channel_dict:
-                    with open(json_path, 'r') as fp:
-                        json_obj = json.load(fp)
-                        try:
-                            print("Importing {} into {} collection.".format(uploader, 'channels'))
-                            channel_collection.insert_one(json_obj)
-                        except:
-                            print("{} failed to import into {} collection.".format(uploader, 'channels'))
-                    print("---------")
-                    sys.exit()
-                    upload_count +=1
+                    if val not in channel_dict:
+                        with open(json_path, 'r') as fp:
+                            json_obj = json.load(fp)
+                            try:
+                                print("Importing {} into {} collection.".format(uploader, 'channels'))
+                                channel_collection.insert_one(json_obj)
+                            except:
+                                print("{} failed to import into {} collection.".format(uploader, 'channels'))
+                        print("---------")
+                        sys.exit()
+                        upload_count +=1
+
+        except:
+            print("ERROR: Failed import")
+            print("Does not appear to be channel or video!")
+            print("ID: {}".format(val))
+            sys.exit(1)
 
 
     print("Uploaded {} documents".format(upload_count))
