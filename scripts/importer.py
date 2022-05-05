@@ -60,7 +60,9 @@ if __name__ == '__main__':
     video_collection = db.videos
     channel_collection = db.channels
 
+    print("Getting list of videos in {} collection".format("videos"))
     database_vids = video_collection.distinct("id")
+    print("Getting list of videos in {} collection".format("channels"))
     database_channels = channel_collection.distinct("id")
 
     vid_dict = dict(zip(database_vids, range(len(database_vids)) ))
@@ -117,7 +119,6 @@ if __name__ == '__main__':
                             except:
                                 print("{} failed to import into {} collection.".format(uploader, 'channels'))
                         print("---------")
-                        sys.exit()
                         upload_count +=1
 
         except:

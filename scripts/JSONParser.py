@@ -297,8 +297,6 @@ if __name__ == '__main__':
     json_list = []
     #Go through each file and verify it's a complete json
     for json_file in json_files.info_files:
-
-
         if is_video_json(json_file):
             #Open same file twice to lazily pass one for json format verification
             with open(json_file, 'r') as file, open(json_file, 'r') as filecopy:
